@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type ChatGPTUser = {
@@ -22,21 +22,51 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
   const userId = requestHeaders.get(USER_ID_HEADER);
   const email = requestHeaders.get(USER_EMAIL_HEADER);
-  if (!userId || !email) return null;
+  if (userId && email) {
+    const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
+    const fullName =
+      encodedFullName &&
+      requestHeaders.get(USER_FULL_NAME_ENCODING_HEADER) === PERCENT_ENCODED_UTF8
+        ? safeDecodeURIComponent(encodedFullName)
+        : null;
 
-  const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get(USER_FULL_NAME_ENCODING_HEADER) === PERCENT_ENCODED_UTF8
-      ? safeDecodeURIComponent(encodedFullName)
-      : null;
+    return {
+      userId,
+      displayName: fullName ?? email,
+      email,
+      fullName,
+    };
+  }
 
-  return {
-    userId,
-    displayName: fullName ?? email,
-    email,
-    fullName,
-  };
+  // Cookie-based authentication for standard hosting (Vercel, custom domain)
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("site_auth_user")?.value;
+    if (session) {
+      const parsed = JSON.parse(decodeURIComponent(session));
+      if (parsed.email) {
+        return {
+          userId: parsed.userId || `user-${parsed.email.replace(/[^a-zA-Z0-9]/g, '_')}`,
+          displayName: parsed.displayName || parsed.email.split('@')[0],
+          email: parsed.email,
+          fullName: parsed.displayName || null,
+        };
+      }
+    }
+  } catch {}
+
+  // Local / Standalone development fallback
+  const fallbackEmail = process.env.WORKSPACE_OWNER_EMAIL || process.env.NEXT_PUBLIC_OWNER_EMAIL;
+  if (process.env.NODE_ENV === "development" && fallbackEmail) {
+    return {
+      userId: `owner-${fallbackEmail.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      displayName: "Workspace Owner",
+      email: fallbackEmail,
+      fullName: "Workspace Owner",
+    };
+  }
+
+  return null;
 }
 
 export async function requireChatGPTUser(

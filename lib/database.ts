@@ -238,6 +238,16 @@ async function executeSupabaseRun(sb: any, sql: string, args: any[]) {
     return { success: true };
   }
 
+  if (norm.startsWith('update enquiries set data')) {
+    await sb.from('enquiries').update({ data: args[0] }).eq('id', args[1]);
+    return { success: true };
+  }
+
+  if (norm.startsWith('delete from enquiries where id')) {
+    await sb.from('enquiries').delete().eq('id', args[0]);
+    return { success: true };
+  }
+
   if (norm.startsWith('delete from request_limits')) {
     await sb.from('request_limits').delete().lt('expires_at', args[0]);
     return { success: true };
@@ -292,6 +302,7 @@ function memoryQueryFirst(sql: string, args: any[]) {
     const w = memoryStore.get('workspace:' + (args[0] || 'main'));
     return w ? { id: w.id } : null;
   }
+  if (norm.startsWith('select * from enquiries where id')) return memoryStore.get('enquiry:' + args[0]) || null;
   if (norm.startsWith('insert into request_limits')) return { count: 1 };
   return null;
 }
@@ -349,6 +360,11 @@ function memoryRun(sql: string, args: any[]) {
     memoryStore.set('audit:' + args[0], { id: args[0], actor_id: args[1], actor_email: args[2], action: args[3], entity_id: args[4], details: args[5], created_at: args[6] || new Date().toISOString() });
   } else if (norm.startsWith('insert into enquiries')) {
     memoryStore.set('enquiry:' + args[0], { id: args[0], data: args[1], created_at: args[2] || new Date().toISOString() });
+  } else if (norm.startsWith('update enquiries set data')) {
+    const existing = memoryStore.get('enquiry:' + args[1]);
+    if (existing) memoryStore.set('enquiry:' + args[1], { ...existing, data: args[0] });
+  } else if (norm.startsWith('delete from enquiries where id')) {
+    memoryStore.delete('enquiry:' + args[0]);
   }
   return { success: true };
 }

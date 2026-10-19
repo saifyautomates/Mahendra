@@ -19,3 +19,10 @@ export const demoEntries:Entry[]=[
 {id:'d4',projectId:'sample-1',kind:'labour',createdAt:'2026-10-18',data:{title:'Ramesh · sample mason',date:'2026-10-18',days:1,rate:90000,advance:20000,paid:0,amount:90000,notes:'Brickwork, ground floor'}},
 {id:'d5',projectId:'sample-1',kind:'update',createdAt:'2026-10-18',data:{title:'Ground-floor brickwork progressing',date:'2026-10-18',notes:'East-side walls complete. Window openings checked against the drawing. Next: internal plaster preparation.'}},
 {id:'d6',projectId:'sample-1',kind:'quotation',createdAt:'2026-10-15',data:{title:'Boundary wall estimate',date:'2026-10-15',lines:[{description:'Brick masonry',qty:120,unit:'sq ft',rate:18000},{description:'Plaster & finish',qty:120,unit:'sq ft',rate:6500}],tax:0,notes:'Illustrative estimate only. Rates are sample values.'}}];
+
+export type Enquiry = {id:string;name:string;phone:string;city:string;type:string;details:string;status?:string;notes?:string;createdAt:string};
+export const demoEnquiries:Enquiry[]=[
+{id:'enq-1',name:'Rajesh Sharma',phone:'+919829012345',city:'Kota, Rajasthan',type:'Independent home',details:'Looking to construct a 3 BHK duplex on a 30x50 plot in Talwandi. Need full turnkey construction with premium materials.',status:'New',createdAt:'2026-10-19T10:30:00.000Z'},
+{id:'enq-2',name:'Pooja Agarwal',phone:'+919414098765',city:'Jaipur, Rajasthan',type:'Housing society',details:'We are planning a gated residential society of 16 villas near Mansarovar. Looking for architectural planning and structural contractor.',status:'In Discussion',createdAt:'2026-10-18T14:15:00.000Z'},
+{id:'enq-3',name:'Vikram Singh',phone:'+919828554321',city:'Kota, Rajasthan',type:'Independent home',details:'Require renovation and 1st floor construction (approx 1,500 sq ft). Please contact for site visit schedule.',status:'Site Visit Scheduled',createdAt:'2026-10-17T09:00:00.000Z'}];
+
